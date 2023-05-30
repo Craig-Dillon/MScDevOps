@@ -7,8 +7,8 @@ terraform {
   }
 
   backend "azurerm" {
-    tenant_id                = "cd9e8269-dfb6-48e0-8253-8b7baf8d3391"
-    subscription_id          = "947aa7a3-d535-4bcb-aa86-8b255f29b8e2"
+    tenant_id                = ""
+    subscription_id          = ""
     resource_group_name      = "k8s_testing"
     storage_account_name     = "tfbackendk8s"
     container_name           = "terraform"
