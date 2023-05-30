@@ -1,0 +1,66 @@
+# ConfigMap with the HTML code for the web page
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: staging-page
+  namespace: staging
+data:
+  index.html: |
+    <html>
+      <head>
+        <title>Production Cluster</title>
+      </head>
+      <body>
+        <h1>Production Cluster</h1>
+      </body>
+    </html>
+
+---
+# Deployment for the web server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-server
+  namespace: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: staging-server
+  template:
+    metadata:
+      labels:
+        app: staging-server
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 8082
+          volumeMounts:
+            - name: staging-page
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: staging-page
+          configMap:
+            name: staging-page
+            items:
+              - key: index.html
+                path: index.html
+
+---
+# Service for exposing the web server
+apiVersion: v1
+kind: Service
+metadata:
+  name: staging-server
+  namespace: staging
+spec:
+  selector:
+    app: staging-server
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+  type: LoadBalancer
+  loadBalancerIP: 40.127.239.44
