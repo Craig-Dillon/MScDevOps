@@ -1,0 +1,21 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "baseBranches": ["staging"],
+  "packageRules": [
+    {
+      "updateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true
+    }
+  ],
+  "timezone": "Europe/Dublin",
+  "schedule": [
+    "after 10pm every weekday",
+    "before 5am every weekday",
+    "every weekend"
+  ]
+}
