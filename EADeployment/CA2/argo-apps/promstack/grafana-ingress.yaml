@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+  - host: grafs.4eec9e20b63c410b88ee.northeurope.aksapp.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: monitoring-grafana
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - grafs.4eec9e20b63c410b88ee.northeurope.aksapp.io
+    secretName: grafana-cert

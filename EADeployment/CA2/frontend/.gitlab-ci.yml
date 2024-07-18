@@ -1,0 +1,21 @@
+image: docker:stable
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+
+services:
+  - docker:26.1.0-dind
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - cd frontend/
+    - docker build -t $DOCKER_USERNAME/app_frontend:0.24.0 .
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker push $DOCKER_USERNAME/app_frontend:0.24.0
+

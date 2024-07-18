@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: goldpinger
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: goldpinger
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@gitlab.com:msc-devops1/EADeployment.git
+    path: argo-apps/goldpinger/goldpingerconfig/
+    targetRevision: main 
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: goldpinger
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+

@@ -1,0 +1,24 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    email: x00205790@mytudublin.ie
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-issuer-account-key
+    solvers:
+    - dns01:
+        azureDNS:
+          hostedZoneName: 4eec9e20b63c410b88ee.northeurope.aksapp.io ####Zone changes with each AKS redeploy
+          resourceGroupName: aks_test-aks
+          subscriptionID: *
+          environment: AzurePublicCloud
+          clientID: *
+          clientSecretSecretRef:
+            name: azuredns-config
+            key: client-secret
+          tenantID: *
+

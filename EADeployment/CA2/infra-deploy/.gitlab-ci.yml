@@ -1,0 +1,95 @@
+image:
+  name: hashicorp/terraform:latest
+  entrypoint: [""]
+
+stages:
+  - plan
+  - apply
+  - configs
+  - destroy
+
+plan:
+  stage: plan
+  script:
+    - cd infra-deploy
+    - export TF_VAR_tenant_id="$ARM_TENANT_ID"
+    - export TF_VAR_subscription="$ARM_SUBSCRIPTION_ID"
+    - export TF_VAR_client_id="$ARM_CLIENT_ID"
+    - export TF_VAR_client_secret="$ARM_CLIENT_SECRET"
+    - terraform init
+    - terraform validate
+    - terraform plan -out "planfile"
+  artifacts:
+    paths:
+      - infra-deploy/planfile
+
+deploy_aks:
+  stage: apply
+  script:
+    - cd infra-deploy
+    - export TF_VAR_public_key=${PUBKEY}
+    - export TF_VAR_tenant_id="$VAR_TENANT"
+    - export TF_VAR_subscription="$VAR_SUBSCRIPTION"
+    - export TF_VAR_tenant="$VAR_TENANT"
+    - export TF_VAR_client_id="$VAR_CLIENT_ID"
+    - export TF_VAR_client_secret="$VAR_CLIENT_SECRET"
+    - terraform init
+    - terraform apply -input=false "planfile"
+  when: manual
+
+configure_argo:
+  stage: configs
+  image: mcr.microsoft.com/azure-cli:latest
+  script:
+    - az aks install-cli
+    - apk add git
+    - apk add busybox
+    - apk add curl
+    - apk add make
+    - apk add openssh-client
+    - wget https://go.dev/dl/go1.22.2.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
+    - export PATH=$PATH:/usr/local/go/bin
+    - git clone https://github.com/cilium/cilium-cli.git
+    - cd cilium-cli
+    - make install
+    - cd ../
+    - export CLUSTER=aks-cluster
+    - export RESOURCE_GROUP=aks_test
+    - az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+    - az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER
+    - git clone https://github.com/cilium/cilium.git
+    - cd cilium
+    - cilium install --chart-directory ./install/kubernetes/cilium     --set kubeProxyReplacement=true     --set ingressController.enabled=true     --set ingressController.loadbalancerMode=shared --set loadBalancer.l7.backend=envoy --set ingressController.default=true --set-string azure.resourceGroup=aks_test
+    - cilium hubble enable
+    - cilium hubble enable --ui
+    - cd ../
+    - az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+    - az aks get-credentials --resource-group aks_test --name aks-cluster
+    - kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+    - kubectl create secret generic azuredns-config --from-literal=client-secret=$ARM_CLIENT_SECRET -n cert-manager
+    - kubectl apply -f infra-deploy/cert-manager/clusterissuer.yaml -n cert-manager
+    - kubectl apply -f infra-deploy/hubble/hubblecert.yaml
+    - kubectl apply -f infra-deploy/hubble/hubbleingress.yaml
+    - kubectl create namespace argocd
+    - kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    - kubectl apply -f infra-deploy/argo-deploy/repo.yaml -n argocd
+    - kubectl apply -f infra-deploy/argo-deploy/app-of-apps.yaml
+    - "kubectl patch svc argocd-server -n argocd -p '{\"spec\": {\"type\": \"LoadBalancer\"}}'"
+  when: manual
+
+destroy:
+  stage: destroy
+  script:
+    - cd infra-deploy
+    - export TF_VAR_public_key=${PUBKEY}
+    - export TF_VAR_tenant_id="$VAR_TENANT"
+    - export TF_VAR_subscription="$VAR_SUBSCRIPTION"
+    - export TF_VAR_tenant="$VAR_TENANT"
+    - export TF_VAR_client_id="$VAR_CLIENT_ID"
+    - export TF_VAR_client_secret="$VAR_CLIENT_SECRET"
+    - terraform init
+    - terraform validate
+    - terraform plan -out "planfile"
+    - terraform destroy -auto-approve
+  when: manual

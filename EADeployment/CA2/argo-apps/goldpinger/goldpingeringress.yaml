@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: goldpinger-ingress
+  namespace: goldpinger
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+  - host: goldpinger.4eec9e20b63c410b88ee.northeurope.aksapp.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: goldpinger
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - goldpinger.4eec9e20b63c410b88ee.northeurope.aksapp.io
+    secretName: goldpinger-cert

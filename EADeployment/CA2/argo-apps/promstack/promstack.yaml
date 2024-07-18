@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=false
+      - CreateNamespace=true
+      - PrunePropogationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
+      - Replace=false
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+  project: default
+  sources:
+    - chart: kube-prometheus-stack
+      repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: 58.2.1
+      helm:
+        releaseName: monitoring
+        passCredentials: false
+        parameters:
+        - name: "windowsMonitoring.enabled"
+          value: "false"
+        - name: "grafana.ingress.enabled"
+          value: "false"
+    - repoURL: https://github.com/dotdc/grafana-dashboards-kubernetes
+      targetRevision: HEAD
+      path: ./
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: monitoring
+  revisionHistoryLimit: 5
+  ignoreDifferences:
+  - jsonPointers:
+    - /spec/volumeName
+    - /spec/storageClassName
+    kind: PersistentVolumeClaim
+

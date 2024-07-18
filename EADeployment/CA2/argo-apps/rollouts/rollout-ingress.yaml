@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rollouts-ingress
+  namespace: argo-rollouts
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+  - host: rollouts.4eec9e20b63c410b88ee.northeurope.aksapp.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: argo-rollouts-dashboard
+            port:
+              number: 3100
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - rollouts.4eec9e20b63c410b88ee.northeurope.aksapp.io
+    secretName: rollout-cert

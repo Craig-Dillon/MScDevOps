@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rollout-cert
+  namespace: argo-rollouts
+spec:
+  secretName: rollout-cert
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - x00205790
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - rollouts.4eec9e20b63c410b88ee.northeurope.aksapp.io
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

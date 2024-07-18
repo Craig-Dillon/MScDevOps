@@ -1,0 +1,21 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "Backend service for car management",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "dependencies": {
+      "express": "4.19.2",
+      "express-session": "1.18.0",
+      "body-parser": "1.20.0",
+      "cors": "2.8.5",
+      "mysql2": "3.9.7",
+      "memcached": "2.2.2",
+      "connect-memcached": "2.0.0",
+      "ws": "8.16.0",
+      "https": "1.0.0"
+    }
+  }
+  
