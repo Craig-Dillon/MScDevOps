@@ -57,10 +57,14 @@ Enterprise Architecture Design. This module focuses on designing platforms, serv
 A presentation and lab based on service meshes in Kubernetes.
 
 ## Final Project
-Final thesis project, currently a work in progress.
+Final thesis preperation project.
 
 ### CA1
 A critical literature review comparing different container orchestration platforms.
 
 ## CA2
 Proposal for final research paper. The approved proposal is *A Comparison of AKS and k3s running in Azure.*
+
+## Thesis
+*A Comparison of AKS and k3s running in Azure.*
+Completed and awarded First Class Honours.
